@@ -22,31 +22,7 @@ def send_magic_link(email: str, magic_token: str) -> None:
 
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
-    except Exception as e:
-        print(e.message)
-
-
-def send_monitor_deleted(email: str, domain: str, uuid: str) -> None:
-    message = Mail(
-        from_email="monitor@certainty.dev",
-        to_emails=email,
-        subject="CERTainty Monitor Deleted",
-        html_content=f"""<p>
-        
-        Hello!</p>
-
-        <p>This email serves as confirmation that the monitor for {domain} with identifier {uuid} has been deleted.</p>
-
-        <p>You're welcome back at any time.</p>
-
-        <p>Many thanks!</p>
-    """,
-    )
-
-    try:
-        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        sg.send(message)
     except Exception as e:
         print(e.message)
 
@@ -68,7 +44,7 @@ def send_monitor_error(email: str, domain: str, uuid: str) -> None:
 
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        sg.send(message)
     except Exception as e:
         print(e.message)
 
@@ -92,7 +68,7 @@ def send_monitor_expired(
 
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        sg.send(message)
     except Exception as e:
         print(e.message)
 
@@ -116,7 +92,7 @@ def send_monitor_expiring(
 
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        sg.send(message)
     except Exception as e:
         print(e.message)
 
@@ -140,7 +116,7 @@ def send_monitor_renewed(
 
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        sg.send(message)
     except Exception as e:
         print(e.message)
 
@@ -162,6 +138,6 @@ def send_monitor_deleted(email: str, domain: str, uuid: str) -> None:
 
     try:
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        sg.send(message)
     except Exception as e:
         print(e.message)

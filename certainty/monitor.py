@@ -1,7 +1,5 @@
 import asyncio
 import datetime
-import ssl
-import time
 
 from tortoise import Tortoise
 import certainty
@@ -138,7 +136,7 @@ async def get_certificate_detail(domain: str) -> dict | None:
         peercert = writer.get_extra_info("peercert")
         writer.close()
         return peercert
-    except Exception as e:
+    except Exception:
         return None
 
 

@@ -1,8 +1,6 @@
 import datetime
 import os
 
-BASE_URL = os.getenv("BASE_URL")
-
 from typing import Annotated
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,13 +12,16 @@ from dotenv import load_dotenv
 from rq import Queue
 from rq_scheduler import Scheduler
 import validators
-import time
+
+# we need to do this before importing anything else as we other end up with circular imports. not ideal.
+load_dotenv(".env")
+BASE_URL = os.getenv("BASE_URL")
+
 
 from certainty.monitor import check_certificates_sync
 
 from certainty.email import send_magic_link
 
-load_dotenv(".env")
 
 # We need to initialize the models before defining marshalling classes
 Tortoise.init_models(["certainty.models"], "models")
@@ -140,13 +141,12 @@ async def get_prometheus_metrics(request: Request, monitor_id: str):
         return PlainTextResponse("Monitor not found", status_code=404)
 
     metrics = []
-    current_time = time.time()
 
     # Metric for time until expiration
     metrics.append(
-        f"# HELP cert_seconds_until_expiry The number of seconds until the certificate expires"
+        "# HELP cert_seconds_until_expiry The number of seconds until the certificate expires"
     )
-    metrics.append(f"# TYPE cert_seconds_until_expiry gauge")
+    metrics.append("# TYPE cert_seconds_until_expiry gauge")
     if monitor.not_after:
         seconds_until_expiry = (
             monitor.not_after - datetime.datetime.now(tz=datetime.timezone.utc)
@@ -157,9 +157,9 @@ async def get_prometheus_metrics(request: Request, monitor_id: str):
 
     # Metric for last check timestamp
     metrics.append(
-        f"# HELP cert_last_checked_timestamp The timestamp of the last certificate check"
+        "# HELP cert_last_checked_timestamp The timestamp of the last certificate check"
     )
-    metrics.append(f"# TYPE cert_last_checked_timestamp gauge")
+    metrics.append("# TYPE cert_last_checked_timestamp gauge")
     if monitor.checked_at:
         last_checked = monitor.checked_at.timestamp()
         metrics.append(
@@ -168,27 +168,27 @@ async def get_prometheus_metrics(request: Request, monitor_id: str):
 
     # Metric for notBefore
     metrics.append(
-        f"# HELP cert_not_before The timestamp of the certificate notBefore date"
+        "# HELP cert_not_before The timestamp of the certificate notBefore date"
     )
-    metrics.append(f"# TYPE cert_not_before gauge")
+    metrics.append("# TYPE cert_not_before gauge")
     if monitor.not_before:
         not_before = monitor.not_before.timestamp()
         metrics.append(f'cert_not_before{{domain="{monitor.domain}"}} {not_before}')
 
     # Metric for notAfter
     metrics.append(
-        f"# HELP cert_not_after The timestamp of the certificate notAfter date"
+        "# HELP cert_not_after The timestamp of the certificate notAfter date"
     )
-    metrics.append(f"# TYPE cert_not_after gauge")
+    metrics.append("# TYPE cert_not_after gauge")
     if monitor.not_after:
         not_after = monitor.not_after.timestamp()
         metrics.append(f'cert_not_after{{domain="{monitor.domain}"}} {not_after}')
 
     # Metric for monitor state
     metrics.append(
-        f"# HELP cert_monitor_state The state of the certificate monitor (0=UNKNOWN, 1=OK, 2=EXPIRED, 3=EXPIRING, 4=ERROR)"
+        "# HELP cert_monitor_state The state of the certificate monitor (0=UNKNOWN, 1=OK, 2=EXPIRED, 3=EXPIRING, 4=ERROR)"
     )
-    metrics.append(f"# TYPE cert_monitor_state gauge")
+    metrics.append("# TYPE cert_monitor_state gauge")
     state_value = {"UNKNOWN": 0, "OK": 1, "EXPIRED": 2, "EXPIRING": 3, "ERROR": 4}[
         monitor.state
     ]
@@ -238,7 +238,7 @@ async def delete_monitor(request: Request, monitor_id: str):
 
 
 @app.get("/management", response_class=HTMLResponse)
-async def management(request: Request):
+async def management_get(request: Request):
     print(request.session)
 
     print(list(scheduler.get_jobs()))
@@ -262,7 +262,7 @@ async def logout(request: Request):
 
 
 @app.post("/management", response_class=HTMLResponse)
-async def management(email: Annotated[str, Form()], request: Request):
+async def management_post(email: Annotated[str, Form()], request: Request):
     ml = await MagicLink.create(email=email)
 
     q.enqueue(send_magic_link, email, ml.token)
@@ -275,7 +275,7 @@ async def management(email: Annotated[str, Form()], request: Request):
 
 
 @app.get("/management/{magic_link}", response_class=HTMLResponse)
-async def management(request: Request, magic_link: str, response: Response):
+async def management_magic_link_get(request: Request, magic_link: str, response: Response):
     ml = await MagicLink.get(token=magic_link)
 
     if ml.used_at is None:
@@ -307,14 +307,14 @@ async def monitor(certificate_monitor_request: CertificateMonitorPostRequest):
 
 
 @app.get("/api/monitors/{monitor_id}")
-async def get_monitor(monitor_id: str) -> CertificateMonitorResponse:
+async def get_monitor_api(monitor_id: str) -> CertificateMonitorResponse:
     monitor = await get_certificate_monitor(monitor_id)
 
     return monitor
 
 
 @app.get("/api/monitors/{monitor_id}/refresh")
-async def get_certificate(monitor_id: str) -> CertificateMonitorResponse:
+async def get_certificate_api(monitor_id: str) -> CertificateMonitorResponse:
     return await refresh_certificate_monitor(monitor_id)
 
 
