@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}SSL Monitoring{% endblock %}
+
+{% block content %}
+    {% if error %}
+    <div class="error-message">{{error}}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success-message">{{success}}</div>
+    {% endif %}
+    <p>
+        Monitor SSL certificate for expiry. Enter your domain and email to receive notifications when your certificate is nearing expiration.
+    </p>
+
+    <div>
+        <form action="" method="post">
+            <label for="domain"><strong>Domain:</strong></label>
+            <input type="text" id="domain" name="domain" placeholder="example.com">
+            <label for="email"><strong>Email Address:</strong></label>
+            <input type="text" id="email" name="email" placeholder="john@doe.com">
+            <label for="warning_days"><strong>Warning Threshold (days):</strong></label>
+            <input type="number" id="warning_days" name="warning_days" value="7" min="1">
+            <br>
+            <button type="submit" onclick="submitForm()">Submit</button>
+        </form>
+    </div>
+{% endblock %}

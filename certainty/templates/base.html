@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% block head %}
+    <link rel="stylesheet" href="/static/base.css" />
+    <title>{% block title %}{% endblock %} - CERTainty</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% endblock %}
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">
+        CERTainty SSL Certificate Monitor
+      </h1>
+    <div class="content">
+      <div class="menu">
+        [ <a href="/">New Monitor</a> | <a href="/management">Manage Monitors</a> {% if email %} | <a href="/logout">Logout</a> {% endif %}]
+      </div>
+      {% block content %}
+      {% endblock %}
+    <div class="footer">
+      <p><a href="https://github.com/josephredfern/certainty">src</a></p>
+    </div>
+    </div>
+  </body>
+</html>

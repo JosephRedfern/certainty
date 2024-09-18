@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}SSL Monitoring{% endblock %}
+
+{% block content %}
+
+    <h2>Manage Monitors</h2>
+
+    <div>
+        {% if monitors|length == 0 %}
+        <p>No monitors found. <a href="/">Create one?</a></p>
+        {% else %}
+        <ul>
+            {% for monitor in monitors %}
+            <li><a href="/monitor/{{ monitor.uuid }}">{{monitor.domain}}</a>
+                {% if monitor.state == "ERROR" %}
+                <span class="status-error">Error</span>
+                {% elif monitor.state == "EXPIRED" %}
+                <span class="status-expired">Expired</span>
+                {% elif monitor.state == "EXPIRING" %}
+                <span class="status-expiring">Expiring</span>
+                {% elif monitor.state == "OK" %}
+                <span class="status-valid">Valid</span>
+                {% else %}
+                <span class="status-unknown">Unknown</span>
+                {% endif %}
+                <ul>
+                    <li>{% if monitor.not_after %}Expires <span>{{monitor.not_after}}</span>{% else %}Expiry Unknown!{% endif %}</li>
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+{% endblock %}

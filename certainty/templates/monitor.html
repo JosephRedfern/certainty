@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}SSL Monitoring{% endblock %}
+
+{% block content %}
+
+    {% if new %}
+    <h2><a href="/monitor/{{ monitor.uuid }}">Monitor Created</a></h2>
+    {% else %}
+    <h2><a href="/monitor/{{ monitor.uuid }}">Monitor for {{ monitor.domain }}</a></h2>
+    {% endif %}
+
+    <p class="small-text">
+    {% if email or user_created_this_monitor %}
+    [ <a href="/monitor/{{ monitor.uuid }}/prometheus">prometheus</a> | <a href="/monitor/{{ monitor.uuid }}/delete" onclick="event.preventDefault(); document.getElementById('delete-form').submit();">delete</a> | <a href="/monitor/{{ monitor.uuid }}/refresh" onclick="event.preventDefault(); document.getElementById('refresh-form').submit();">refresh now</a> ]
+    {% endif %}
+    </p>
+
+    <form id="refresh-form" action="/monitor/{{ monitor.uuid }}/refresh" method="POST" class="hidden-form">
+    </form>
+    <form id="delete-form" action="/monitor/{{ monitor.uuid }}/delete" method="POST" class="hidden-form">
+    </form>
+    <div>
+        <h3>Latest Results</h3>
+        <dl></dl>
+            <dt>Not After:</dt>
+            <dd>{{ monitor.not_after }}</dd>
+            <dt>Not Before:</dt>
+            <dd>{{ monitor.not_before }}</dd>
+            <dt>Serial:</dt>
+            <dd>{{ monitor.serial }}</dd>
+            <dt>Status:</dt>
+            <dd>
+                {% if monitor.state == "ERROR" %}
+                <span class="status-error">Error</span>
+                {% elif monitor.state == "EXPIRED" %}
+                <span class="status-expired">Expired</span>
+                {% elif monitor.state == "EXPIRING" %}
+                <span class="status-expiring">Expiring</span>
+                {% elif monitor.state == "OK" %}
+                <span class="status-valid">Valid</span>
+                {% else %}
+                <span class="status-unknown">Unknown</span>
+                {% endif %}
+            </dd>
+        </dl>
+
+        <dl> 
+            <!-- <dt>UUID:</dt>
+            <dd><a href="/monitor/{{ monitor.uuid }}">{{monitor.uuid}}</a></dd> -->
+            <dt>Domain:</dt>
+            <dd>{{ monitor.domain }}</dd>
+            <dt>Created:</dt>
+            <dd>{{ monitor.created_at }}</dd>
+            <dt>Last Checked</dt>
+            <dd>{{ monitor.checked_at }}</dd>
+            <dt>Time Remaining</dt>
+            <dd>{{ monitor.time_remaining() }}</dd>
+            <dt>Warning Threshold</dt>
+            <dd>{{ monitor.warning_days }} {% if monitor.warning_days == 1 %} day {% else %} days {% endif %}</dd>
+        </dl>
+
+
+    </div>
+
+{% endblock %}
