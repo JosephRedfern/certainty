@@ -14,6 +14,8 @@ from rq import Queue
 from rq_scheduler import Scheduler
 import validators
 
+from certainty.email import send_magic_link, send_monitor_deleted  # Add this import at the top of the file
+
 logger = logging.getLogger(__name__)
 
 # we need to do this before importing anything else as we other end up with circular imports. not ideal.
@@ -23,7 +25,7 @@ BASE_URL = os.getenv("BASE_URL")
 
 from certainty.monitor import check_certificates_sync
 
-from certainty.email import send_magic_link
+from certainty.email import send_magic_link, send_deletion_confirmation  # Add this import at the top of the file
 
 
 # We need to initialize the models before defining marshalling classes
@@ -233,7 +235,12 @@ async def delete_monitor(request: Request, monitor_id: str):
     ):
         return RedirectResponse(url="/", status_code=303)
 
+    email = monitor.email
+    domain = monitor.domain
     await monitor.delete()
+
+    # Enqueue the deletion confirmation email
+    q.enqueue(send_monitor_deleted, email, domain)
 
     if request.session.get("email"):
         return RedirectResponse(url="/management", status_code=303)
