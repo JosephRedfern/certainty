@@ -126,7 +126,7 @@ def send_monitor_renewed(
         print(e.message)
 
 
-def send_monitor_deleted(email: str, domain: str, uuid: str) -> None:
+def send_monitor_deleted(email: str, domain: str) -> None:
     message = Mail(
         from_email=from_details,
         to_emails=email,
