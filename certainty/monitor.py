@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import os
 
 from tortoise import Tortoise
 import certainty
@@ -150,7 +151,7 @@ async def get_certificate_detail(domain: str) -> dict | None:
 
 async def check_certificates() -> None:
     await Tortoise.init(
-        db_url="sqlite://db.sqlite3", modules={"models": ["certainty.models"]}
+        db_url=os.getenv("DB_URL"), modules={"models": ["certainty.models"]}
     )
 
     monitors = await CertificateMonitor.filter(
