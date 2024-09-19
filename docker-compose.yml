@@ -9,6 +9,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - app
+    restart: always
+
   app:
     build: .
     expose:
@@ -22,11 +24,13 @@ services:
       - ./data:/data
     depends_on:
       - redis
+    restart: always
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+    restart: always
 
   rq_worker:
     build: .
@@ -40,6 +44,7 @@ services:
       - ./data:/data
     depends_on:
       - redis
+    restart: always
 
   rq_scheduler:
     build: .
@@ -53,3 +58,4 @@ services:
       - ./data:/data
     depends_on:
       - redis
+    restart: always
