@@ -3,6 +3,7 @@ import datetime
 
 from tortoise import Tortoise
 import certainty
+from certainty import logger
 from certainty.email import (
     send_monitor_deleted,
     send_monitor_error,
@@ -33,14 +34,13 @@ async def delete_certificate_monitor(
     await monitor.delete()
 
     if send_notification:
-        # send_monitor_deleted(monitor.email, monitor.domain)
         certainty.q.enqueue(send_monitor_deleted, email, domain, uuid)
 
 
 async def refresh_certificate_monitor(monitor_id: int) -> CertificateMonitor:
     monitor = await CertificateMonitor.get(uuid=monitor_id)
 
-    print(f"Refreshing Monitor {monitor_id} ('{monitor.domain}')")
+    logger.info(f"Refreshing Monitor {monitor_id} ('{monitor.domain}')")
 
     if (monitor_detail := await get_certificate_detail(monitor.domain)) is not None:
         not_before_datetime = datetime.datetime.strptime(
@@ -61,6 +61,7 @@ async def refresh_certificate_monitor(monitor_id: int) -> CertificateMonitor:
             }
         )
     else:
+        logger.warning(f"Failed to get certificate details for {monitor.domain}")
         monitor.update_from_dict(
             {
                 "serial": None,
@@ -87,14 +88,18 @@ async def refresh_certificate_monitor(monitor_id: int) -> CertificateMonitor:
 
     # State has changed
     if monitor.state != new_state:
-        print(f"Monitor {monitor_id} ('{monitor.domain}') changed state to {new_state}")
+        logger.info(
+            f"Monitor {monitor_id} ('{monitor.domain}') changed state from {monitor.state} to {new_state}"
+        )
         if new_state == MonitorState.ERROR:
-            print("To Error")
+            logger.error(
+                f"Monitor {monitor_id} ('{monitor.domain}') entered ERROR state"
+            )
             certainty.q.enqueue(
                 send_monitor_error, monitor.email, monitor.domain, monitor.uuid
             )
         elif new_state == MonitorState.EXPIRED:
-            print("To Expired")
+            logger.warning(f"Monitor {monitor_id} ('{monitor.domain}') has EXPIRED")
             certainty.q.enqueue(
                 send_monitor_expired,
                 monitor.email,
@@ -103,7 +108,7 @@ async def refresh_certificate_monitor(monitor_id: int) -> CertificateMonitor:
                 monitor.not_after,
             )
         elif new_state == MonitorState.EXPIRING:
-            print("To Expiring")
+            logger.warning(f"Monitor {monitor_id} ('{monitor.domain}') is EXPIRING")
             certainty.q.enqueue(
                 send_monitor_expiring,
                 monitor.email,
@@ -112,7 +117,9 @@ async def refresh_certificate_monitor(monitor_id: int) -> CertificateMonitor:
                 monitor.not_after,
             )
         elif new_state == MonitorState.OK and monitor.state != MonitorState.UNKNOWN:
-            print("To OK (from non-UNKNOWN state)")
+            logger.info(
+                f"Monitor {monitor_id} ('{monitor.domain}') renewed and is now OK"
+            )
             certainty.q.enqueue(
                 send_monitor_renewed,
                 monitor.email,
@@ -120,13 +127,13 @@ async def refresh_certificate_monitor(monitor_id: int) -> CertificateMonitor:
                 monitor.uuid,
                 monitor.not_after,
             )
-
     monitor.state = new_state
 
     await monitor.save(
         update_fields=["serial", "not_before", "not_after", "checked_at", "state"]
     )
 
+    logger.info(f"Finished refreshing Monitor {monitor_id} ('{monitor.domain}')")
     return monitor
 
 
@@ -137,12 +144,11 @@ async def get_certificate_detail(domain: str) -> dict | None:
         writer.close()
         return peercert
     except Exception:
+        logger.exception(f"Failed to get certificate details for {domain}")
         return None
 
 
 async def check_certificates() -> None:
-    Tortoise.init_models(["certainty.models"], "models")
-
     await Tortoise.init(
         db_url="sqlite://db.sqlite3", modules={"models": ["certainty.models"]}
     )
@@ -155,13 +161,11 @@ async def check_certificates() -> None:
 
     tasks = []
     for monitor in monitors:
-        print(f"Running Monitor {monitor.uuid} ('{monitor.domain}')")
+        logger.info(f"Running Monitor {monitor.uuid} ('{monitor.domain}')")
         tasks.append(refresh_certificate_monitor(monitor.uuid))
 
     await asyncio.gather(*tasks)
 
 
 def check_certificates_sync() -> None:
-    print("Triggering main certificate check job")
     asyncio.run(check_certificates())
-    print("Certificate check job complete")

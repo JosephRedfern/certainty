@@ -4,8 +4,6 @@
 
 {% block content %}
 
-<!-- we want a form for users to enter an email address. they'll then get a magic link. -->
-
 <h2>Manage Monitors</h2>
 {% if error %}
 <p>
@@ -13,7 +11,7 @@
 </p>
 
 {% elif link %}
-<p> A magic link has been emailed to <code>{{link.email}}</code>. <br><br> TOP SECRET: The token is: <a href="/management/{{link.token}}">{{link.token}}</a>.</p>
+<p> A magic link has been emailed to <code>{{link.email}}</code>. See you soon!</p>
 {% else %}
 <p>
     Enter your email to retrieve a magic link to manage your monitors.

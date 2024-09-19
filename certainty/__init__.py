@@ -1,5 +1,6 @@
 import datetime
 import os
+import logging
 
 from typing import Annotated
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
@@ -12,6 +13,8 @@ from dotenv import load_dotenv
 from rq import Queue
 from rq_scheduler import Scheduler
 import validators
+
+logger = logging.getLogger(__name__)
 
 # we need to do this before importing anything else as we other end up with circular imports. not ideal.
 load_dotenv(".env")
@@ -108,7 +111,6 @@ async def create_monitor(
     request.session["created_uuid"] = str(monitor.uuid)
 
     # Redirect to the monitor page with a 303 status code
-    print("!!!!!!!!!!!! doing the redirects")
     return RedirectResponse(url=f"/monitor/{monitor.uuid}", status_code=303)
 
 
@@ -214,7 +216,9 @@ async def refresh_monitor(request: Request, monitor_id: str):
     ):
         monitor = await refresh_certificate_monitor(monitor_id)
     else:
-        print(f"Skipping refresh for monitor {monitor_id} as it was recently checked")
+        logger.info(
+            f"Skipping refresh for monitor {monitor_id} as it was recently checked"
+        )
 
     return RedirectResponse(url=f"/monitor/{monitor_id}", status_code=303)
 
@@ -239,10 +243,6 @@ async def delete_monitor(request: Request, monitor_id: str):
 
 @app.get("/management", response_class=HTMLResponse)
 async def management_get(request: Request):
-    print(request.session)
-
-    print(list(scheduler.get_jobs()))
-
     if (email := request.session.get("email")) is not None:
         monitors = await CertificateMonitor.filter(email=email)
 
@@ -275,14 +275,15 @@ async def management_post(email: Annotated[str, Form()], request: Request):
 
 
 @app.get("/management/{magic_link}", response_class=HTMLResponse)
-async def management_magic_link_get(request: Request, magic_link: str, response: Response):
+async def management_magic_link_get(
+    request: Request, magic_link: str, response: Response
+):
     ml = await MagicLink.get(token=magic_link)
 
     if ml.used_at is None:
         ml.used_at = datetime.datetime.now(tz=datetime.timezone.utc)
         await ml.save(update_fields=["used_at"])
 
-        print("setting session cookie")
         request.session["email"] = ml.email
 
         return RedirectResponse(url="/management")
@@ -322,7 +323,7 @@ async def get_certificate_api(monitor_id: str) -> CertificateMonitorResponse:
 async def app_startup():
     for job in scheduler.get_jobs():
         if job.func_name == "certainty.monitor.check_certificates_sync":
-            print(f"Cancelling old check certififcates scheduled job: {job}")
+            logger.debug(f"Cancelling old check certififcates scheduled job: {job}")
             scheduler.cancel(job)
 
     scheduler.schedule(
