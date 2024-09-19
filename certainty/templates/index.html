@@ -18,7 +18,7 @@
             <label for="domain"><strong>Domain:</strong></label>
             <input type="text" id="domain" name="domain" placeholder="example.com">
             <label for="email"><strong>Email Address:</strong></label>
-            <input type="text" id="email" name="email" placeholder="john@doe.com">
+            <input type="text" id="email" name="email" placeholder="john@doe.com" {% if email %}value="{{email}}"{% endif %}>
             <label for="warning_days"><strong>Warning Threshold (days):</strong></label>
             <input type="number" id="warning_days" name="warning_days" value="7" min="1">
             <br>
