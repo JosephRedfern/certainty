@@ -29,7 +29,7 @@ from certainty.email import send_magic_link
 # We need to initialize the models before defining marshalling classes
 Tortoise.init_models(["certainty.models"], "models")
 
-from fastapi import Depends, FastAPI, Request, Form, Response
+from fastapi import FastAPI, Request, Form, Response
 from tortoise.contrib.fastapi import register_tortoise
 
 from certainty.marshalling import (
@@ -59,7 +59,7 @@ templates = Jinja2Templates(directory="certainty/templates")
 
 app.add_middleware(SessionAutoloadMiddleware)
 app.add_middleware(
-    SessionMiddleware, store=CookieStore(secret_key="topsecretsessionkey")
+    SessionMiddleware, store=CookieStore(secret_key=os.getenv("SESSION_SECRET"))
 )
 
 register_tortoise(
