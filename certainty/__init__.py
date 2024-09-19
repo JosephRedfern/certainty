@@ -2,6 +2,14 @@ import datetime
 import os
 import logging
 
+logger = logging.getLogger(__name__)
+
+# we need to do this before importing anything else as we other end up with circular imports.
+# not ideal, we should refactor.
+from dotenv import load_dotenv
+load_dotenv(".env")
+BASE_URL = os.getenv("BASE_URL")
+
 from typing import Annotated
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,18 +17,11 @@ from fastapi.templating import Jinja2Templates
 from redis import Redis
 from starsessions import CookieStore, SessionAutoloadMiddleware, SessionMiddleware
 from tortoise import Tortoise
-from dotenv import load_dotenv
 from rq import Queue
 from rq_scheduler import Scheduler
 import validators
 
 from certainty.email import send_magic_link, send_monitor_deleted  # Add this import at the top of the file
-
-logger = logging.getLogger(__name__)
-
-# we need to do this before importing anything else as we other end up with circular imports. not ideal.
-load_dotenv(".env")
-BASE_URL = os.getenv("BASE_URL")
 
 
 from certainty.monitor import check_certificates_sync
