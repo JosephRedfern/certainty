@@ -21,13 +21,6 @@ from rq import Queue
 from rq_scheduler import Scheduler
 import validators
 
-from certainty.email import send_magic_link, send_monitor_deleted  # Add this import at the top of the file
-
-
-from certainty.monitor import check_certificates_sync
-
-from certainty.email import send_magic_link, send_deletion_confirmation  # Add this import at the top of the file
-
 
 # We need to initialize the models before defining marshalling classes
 Tortoise.init_models(["certainty.models"], "models")
@@ -39,14 +32,14 @@ from certainty.marshalling import (
     CertificateMonitorPostRequest,
     CertificateMonitorResponse,
 )
-
 from certainty.models import CertificateMonitor, MagicLink
-
 from certainty.monitor import (
     create_certificate_monitor,
     get_certificate_monitor,
     refresh_certificate_monitor,
+    check_certificates_sync
 )
+from certainty.email import send_magic_link, send_monitor_deleted  # Add this import at the top of the file
 
 
 app = FastAPI()
