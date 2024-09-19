@@ -157,7 +157,7 @@ async def check_certificates() -> None:
     monitors = await CertificateMonitor.filter(
         enabled=True,
         checked_at__lt=datetime.datetime.now(tz=datetime.timezone.utc)
-        - datetime.timedelta(seconds=10),
+        - datetime.timedelta(minutes=15),
     )
 
     tasks = []
