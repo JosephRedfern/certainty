@@ -9,10 +9,11 @@ body {
 
 .container {
     margin-top: 10px;
+    padding: 0 15px;
 }
 
 .title {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: 700;
     text-align: center;
 }
@@ -29,7 +30,8 @@ body {
 
 .content{
     margin-top: 25px;
-    width: 55%;
+    width: 100%;
+    max-width: 800px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -48,13 +50,15 @@ a:hover {
 }
 
 input {
-    font-size: 18px;
+    font-size: 16px;
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
+    box-sizing: border-box;
 }
 
 button {
+    width: 100%;
     color: white;
     margin-top: 3px;
     font-size: 18px;
@@ -142,4 +146,22 @@ h2 {
     padding: 2px 5px;
     border-radius: 3px;
     font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+    }
+
+    input, button {
+        font-size: 14px;
+    }
 }
