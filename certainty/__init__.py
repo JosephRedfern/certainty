@@ -83,6 +83,9 @@ async def create_monitor(
 ):
     error = None
 
+    domain = domain.strip().lower()
+    email = email.strip().lower()
+
     # Check if domain looks like a domain
     if not validators.domain(domain):
         error = "Please provide a valid domain"
